@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectROOT>
+    <generateReport>
+            <picture>
+                    <indexMap>../pictures/ErrorInMap.png</indexMap>
+                    <coverage>
+                            <coverageMap>../pictures/CoverageMap.png</coverageMap>
+                            <detailedCoverage>../pictures/DetailCoverage.png</detailedCoverage>
+                    </coverage>
+            </picture>
+
+            <fileName>
+                    <reportFile>../files/2017-09-08_12-17-35_report.csv</reportFile>
+                    <standardFile>../files/2017-08-17_12-17-35_Standard.csv</standardFile>
+            </fileName>
+    </generateReport>
+
+    <dataBaseInit>
+            <createTable>
+                    <table id="User">
+                            CREATE TABLE User(
+                                    userName VARCHAR(30) NOT NULL,
+                                    userType VARCHAR(30) CHECK (userType IN ('Worker','Manager','Admin')),
+                                    firstname VARCHAR(30) NOT NULL,
+                                    lastname VARCHAR(30) NOT NULL,
+                                    PRIMARY KEY(userName)
+                            )；
+                    </table>
+                    <table id="Company">
+                            CREATE TABLE Company(
+                                    systemID VARCHAR(30) NOT NULL,
+                                    name VARCHAR(30) NOT NULL,
+                                    solarFactoryInfo TEXT,
+                                    userName VARCHAR(30) NOT NULL,
+                                    PRIMARY KEY(systemID),
+                                    FOREIGN KEY (userName) REFERENCES User(userName)
+                            )；
+                    </table>
+                    <table id="Address">
+                            CREATE TABLE Address(
+                                    line1 VARCHAR(120) NOT NULL,
+                                    line2 VARCHAR(50) NOT NULL,
+                                    City VARCHAR(50) NOT NULL,
+                                    State VARCHAR(50) NOT NULL,
+                                    Country VARCHAR(50) NOT NULL,
+                                    Zipcode INT NOT NULL,
+                                    systemID VARCHAR(30) NOT NULL,
+                                    PRIMARY KEY(line1,line2,City,State,Country),
+                                    FOREIGN KEY(systemID) REFERENCES Company(systemID)
+                            )；
+                    </table>
+                    <table id="Log">
+                            CREATE TABLE Log(
+                                    flightTime TIMESTAMP,
+                                    weatherInfo TEXT
+                                    userName VARCHAR(30) NOT NULL,
+                                    PRIMARY KEY(flightTime),
+                                    FOREIGN KEY (userName) REFERENCES User(userName)
+                            )；
+                    </table>
+                    <table id="ErrorPicture">
+                            CREATE TABLE ErrorPicture(
+                                    panelIndex VARCHAR(50) NOT NULL,
+                                    errorPicture BLOB,
+                                    flightTime TIMESTAMP,
+                                    PRIMARY KEY (panelIndex),
+                                    FOREIGN KEY (flightTime) REFERENCES User(flightTime)
+                            );
+                    </table>
+            </createTable>
+            <insertDate>
+                    <UserData>
+                            INSERT INTO User (userName,userType,firstName,lastName) VALUES('wtang13','Admin','Wenting','Tang');
+                    </UserData>
+                    <CompanyData>
+                            INSERT INTO Company (systemID,name,userName) VALUES('test001','HELLOTESTLONGENOUGHNAME','wtang13);
+                    </CompanyData>
+                    <AddressData>
+                            INSERT INTO Address(line1,line2,Ciry,State,Country,Zipcode,systemID) VALUES('3001 South King Drive','Apt215','Chicago','IL','UnitedState','60616','wtang13');
+                    </AddressData>
+            </insertDate>
+    </dataBaseInit>
+    <dataBaseConnection>
+            <host>localhost</host>
+            <user>root</user>
+            <password>root</password>
+            <dbname>aeroSystem</dbname>
+    </dataBaseConnection>
+</projectROOT>
