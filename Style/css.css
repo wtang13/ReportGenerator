@@ -4,3 +4,7 @@
 .p{
     display: none;
 }
+
+.fetchdata {
+    border-style: solid;
+}

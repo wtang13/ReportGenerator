@@ -78,14 +78,14 @@ class ReporterGenerator{
     
     /*
      * Input:String: index map's file path
-     * String: location of inspection area, Int: total Failure, 
+     * Array: companyInfo, Int: total Failure, 
      * String: tips from user
      * function: Add a cell contains overall information
      * add indexMap for frontpage
      * add name of indexMap
      * void
      */
-    function finishFrontpage($indexMap, $location, $totalFailure, $Tips) 
+    function finishFrontpage($indexMap, $companyInfo, $totalFailure, $Tips) 
     {   
         //Add report title
         $s1 ='<h1>Inspection Report<h1>';
@@ -93,12 +93,13 @@ class ReporterGenerator{
         $this->nextFewLine(2);
         
         //Add General information
-        $s2 = '<h2>General information</h2>';
-        $this->pdf->writeHTML($s2);
-        $this->nextFewLine(2);
-        $this->pdf->Cell(0, 0, 'Location: '.$location, 1, 1, 'C', 0, '', 0);
-        $this->pdf->Cell(0, 0, 'Total Failure: '.$totalFailure, 1, 1, 'C', 0, '', 0);
-        $this->pdf->Cell(0, 0, 'Tips: '.$Tips, 1, 1, 'C', 0, '', 0);
+        $keys = ['name','line1','line2','City','State','Country','Zipcode','Total Failure','Tips'];
+        $values = $companyInfo;
+        $values['name'] = $this->pdf->companyName;
+        $values['Tips'] = $Tips;
+        $values['Total Failure'] = $totalFailure;
+        $html = $this->pdf->getTableHTML($keys, $values,'General information');
+        $this->pdf->writeHTML($html, true, false, true, false, '');
         $this->nextFewLine(2);
         
         //Add index Map
@@ -162,7 +163,7 @@ class ReporterGenerator{
         $this->nextFewLine(2);
         
         //Add table for weather and company information
-        $this->pdf->getEnvironmentTable($companyArray, $weatherInfo);
+        $this->pdf->getEnvironmentTable($companyArray['solarFactoryInfo'], $weatherInfo);
         // add page break
         $this->pdf->lastPage();
         $this->pdf->AddPage();
@@ -276,9 +277,15 @@ class ReporterGenerator{
     function reportFinish()
     {
         $filepath = '/result/';
-        $filename ='InspectionReport'.'.pdf';
+        $time = explode(' ', $this->log);
+        $filename ='InspectionReport';
+        foreach($time as $t) {
+            $filename .= $t;
+        }
+        $filename .= '.pdf';
         
         $this->pdf->output(__DIR__ .$filepath.$filename, 'F');
+        return $filename;
     }
     /********Helper Function part **********/
     
@@ -341,7 +348,7 @@ class ReporterGenerator{
         $this->nextFewLine(1);
         $this->pdf->setJPEGQuality(75);
         $y= $this->pdf->GetY();
-        $this->pdf->Image($filePath, 10, $y + 10, 190, 90, 'PNG', '', 'N', true, 150,'', false, false, 0, false, false, false);
+        $this->pdf->Image($filePath, 10, $y + 10, 150, 70, 'PNG', '', 'N', true, 150,'', false, false, 0, false, false, false);
         $this->nextFewLine(2);
     }
     

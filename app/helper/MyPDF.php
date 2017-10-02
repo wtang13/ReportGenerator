@@ -2,7 +2,7 @@
 require ('../TCPDF-master/tcpdf.php');
 class MyPDF extends TCPDF{
     /*********variables***********/
-    private $companyName;
+    public $companyName;
     public $data;
     /******Override functions************/
     /*
@@ -114,11 +114,14 @@ class MyPDF extends TCPDF{
      * $company Array: all company info need to form an area info
      * $weatherInfo: all weather info need to form an weather info
      */
-    public function getEnvironmentTable($companyArray, $weatherInfo) 
+    public function getEnvironmentTable($factoryInfo, $weatherInfo) 
     {
-        // Add weather first
-        $this->getDic($weatherInfo, 'Weather Information');
-        $this->getDic($companyArray, 'Inspection Area Information');
+        //Add weatherTableFirst
+        $weatherHTML = $this->getTableHTML(array_keys($weatherInfo), $weatherInfo,'Weather Info');
+        $this->writeHTML($weatherHTML, true, false, true, false, '');
+        $factoryHTML = $this->getTableHTML(array_keys($factoryInfo), $factoryInfo,'Inspection Area Info');
+        $this->writeHTML($factoryHTML, true, false, true, false, '');
+        
     }
     
         /*
@@ -228,6 +231,24 @@ class MyPDF extends TCPDF{
         }
     }
     
+    //function add table use write html approach return a string
+    function getTableHTML($keys,$values,$tableName)
+    {
+        $html = '<table border="1">';
+        if ($tableName != '') {
+            $html .= '<tr nobr="true">
+                        <th colspan="2">'.$tableName.'</th>
+                      </tr>';
+        }
+        for($i = 0; $i < count($keys);$i++) {
+            $html .= '<tr>
+                            <td>'.$keys[$i].'</td>
+                            <td>'.$values[$keys[$i]].'</td>
+                        </tr>';
+        }
+        $html .='</table>';
+        return $html;
+    }
     
     
     }   

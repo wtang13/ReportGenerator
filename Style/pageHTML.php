@@ -4,14 +4,13 @@
         <div class ="name">
             <label> User Name: </label>
             <input class="userid" type="text" name="username">
+            <label class ="fetchdata">Valid User</label>
         </div>
         
         <div class="type">
             <label> User Type: </label>
             <select class ="option" name="type">
                 <option>...</option>
-                <option value ="worker"> Worker</option>
-                <option value ="manager"> Manager </option>
             </select>
         </div>
         
