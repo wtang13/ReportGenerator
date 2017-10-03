@@ -42,12 +42,15 @@ $op->insertData('//AddressData', $Address);
 $Log = [
     ['general' =>'1992-06-17 08:15:23'],
     ['LOB'=>'../files/weatherInfo.json'],
+    ['LOB' =>'../pictures/CoverageMap.png'],
+    ['LOB' =>'../pictures/DetailCoverage.png'],
+    ['LOB' =>'../pictures/ErrorInMap.png'],
     ['general'=>'wtang13']
 ];
 $op->insertData('//LogData', $Log);
 
 
-//insert in ErrorPicture
+/*insert in ErrorPicture
 $error = [
     ['general' =>'CB-1.1-2.3'],
     ['LOB' =>'../pictures/Temp-DetailError.png'],

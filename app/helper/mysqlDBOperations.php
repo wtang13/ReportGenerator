@@ -94,7 +94,11 @@ class mysqlDBOperations{
      */
     function queryData($tag,$cols,$data)
     {
-        $columns = $this->getColumns($cols);
+        if ($cols != '') {
+            $columns = $this->getColumns($cols);
+        } else {
+            $columns = [];
+        }
         $result = 'Empty';
         try{
             $db = $this->getConnection();
@@ -130,6 +134,60 @@ class mysqlDBOperations{
             echo $e->getMessage()."\n";
         }
         return $result;
+    }
+    
+    /*
+     * Function: get number of tuples in tb_IdlePanel
+     * Output: number of typles
+     */
+    function getTotalFaliures()
+    {
+        $data = [];
+        $output = $this->queryData('//QueryGetTotalFailures','', $data);
+        $number = $output[0]['number'];
+        return $number;
+    }
+    
+    /*
+     * Function: get element in db based on flightTime
+     */
+    function getIdelPanelInfo($flightTime)
+    {
+        $path = '../pictures/errorPictures/';
+        if (!file_exists($path)){
+            mkdir($path);
+        }
+        $name = 'testRead.png';
+        $data = [$flightTime];
+        $output = $this->queryData("//QueryGetIdelPanelInfo", "//columnGetIdelPanelInfo", $data);
+        $idelPanelInfo = [];
+        $j = 1;
+        foreach($output as $tuple) {
+            $keys = array_keys($tuple);
+            $temp = [];
+            for($i = 0; $i < count($tuple); $i++) {
+                if ($keys[$i] == 'errorPicture') {
+                    $temp[$keys[$i]] = $path.$j.$name;
+                    $this->savePicture($path.$j.$name, $tuple[$keys[$i]]);
+                    $j++;
+                } else {
+                    $temp[$keys[$i]] = $tuple[$keys[$i]];
+                }
+            }
+            $idelPanelInfo[] = $temp;
+        }
+        return $idelPanelInfo;
+    }
+    
+    /*
+     * Function: get number of tuples fullfill the requirement in tb_DroneFlightLog
+     */
+    function getTotalInspectedPanels()
+    {
+        $data = [];
+        $output = $this->queryData('//QueryGetTotalInspectedPanels','', $data);
+        $number = $output[0]['number'];
+        return $number;
     }
     
     /*
@@ -190,40 +248,37 @@ class mysqlDBOperations{
     
     /*
      * function:get a specific flight log based in date
-     * Output:an array of array: log log['errorPicture'] and log['weather']
+     * Output:an array of array: log log['weather']
      */
     function getFlightLog($flightTime)
     {
-        $path = '../pictures/errorPictures/';
+        $path = '../pictures/Maps/';
         if (!file_exists($path)){
             mkdir($path);
         }
-        $name = 'testRead.png';
+        $name = [
+            'CoverageMap' => 'CoverageMap.png',
+            'DetailedCoverageMap'=>'DetailedCoverageMap.png',
+            'ErrorInMap'=>'ErrorInMap.png'
+        ];
         $data = [$flightTime];
         $output = $this->queryData('//QueryGetFlightLog','//ColumnGetFlightLog', $data);
-        $picture = [];
         $weather = [];
+        $result = [];
         foreach($output as $tuple) {
             $keys = array_keys($tuple);
-            $i = 0;
-            $j = 1;
-            foreach ($tuple as $data) {
-                if($keys[$i] == 'errorPicture') {
-                    $file = fopen($path.$j.$name,"w+");
-                    $picture[] = $path.$j.$name;
-                    fwrite($file, $data);
-                    fclose($file);
-                    $j++;
-                } else {// parse and save to $weather
-                    $weather = json_decode($data,true);
-                }
-                $i++;
+            for ($i = 0; $i < count($tuple); $i++) {
+                if ($keys[$i] == 'weatherInfo') {
+                    $weather = json_decode($tuple[$keys[$i]],true);
+                } else {
+                    $result[$keys[$i]] = $path.$name[$keys[$i]];
+                    $this->savePicture($path.$name[$keys[$i]], $tuple[$keys[$i]]);
+                } 
             }
+            break;
         }
-        $output = [];
-        $output['weather'] = $weather;
-        $output['picture'] = $picture;
-        return $output;
+        $result['weather'] = $weather;
+        return $result;
     }
     /****Helper functions****/
     //function: add factory info to company info
@@ -278,7 +333,13 @@ class mysqlDBOperations{
         return $result;
     }
     
-
+    //write picture to a specific file
+    function savePicture($filepath,$data)
+    {
+        $file = fopen($filepath,"w+");
+        fwrite($file,$data);
+        fclose($file);
+    }
     
 }
 

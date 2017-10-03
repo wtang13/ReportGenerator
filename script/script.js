@@ -28,6 +28,7 @@ function validInput(username) {
 function checkUser(username) {
     var select = $('.logs');
     var show = $(".option");
+    var hide = $(".hide");
     // add sanity chech here
     var isValid = new validInput(username);
     if (isValid){
@@ -46,6 +47,9 @@ function checkUser(username) {
                         value:pageUserInfo.usertype,
                         text: pageUserInfo.usertype
                     })));
+                    if (pageUserInfo.usertype == 'Worker') {// hide some element from worker
+                        hied.css({'display':'none'});
+                    }
                     new fetchdata(pageUserInfo.username,select);
                 } else {
                     alert("Invalid user name! please input again");
@@ -97,7 +101,9 @@ function fetchdata(input,select) {
         $.ajax('getLogs.php',{
             data: {'username':input},
             success: function(response){
+                console.log(response); 
                 var obj = $.parseJSON(response);
+                console.log(obj);
                 for(var i = 0; i < obj.length;i++) {
 
                     select.append($($('<option>', {

@@ -18,72 +18,124 @@
     <dataBaseInit>
             <createTable>
                     <table id="User">
-                            CREATE TABLE User(
-                                    userName VARCHAR(30) NOT NULL,
-                                    userType VARCHAR(30) CHECK (userType IN ('Worker','Manager','Admin')),
-                                    firstname VARCHAR(30) NOT NULL,
-                                    lastname VARCHAR(30) NOT NULL,
+                            CREATE TABLE tb_User(
+                                    userName VARCHAR(50) NOT NULL,
+                                    userType VARCHAR(50) CHECK (userType IN ('Worker','Manager','Admin')),
+                                    firstname VARCHAR(50) NOT NULL,
+                                    lastname VARCHAR(50) NOT NULL,
                                     PRIMARY KEY(userName)
                             );
                     </table>
                     <table id="Company">
-                            CREATE TABLE Company(
-                                    systemID VARCHAR(30) NOT NULL,
-                                    name VARCHAR(30) NOT NULL,
+                            CREATE TABLE tb_Company(
+                                    systemID VARCHAR(50) NOT NULL,
+                                    name VARCHAR(50) NOT NULL,
                                     solarFactoryInfo TEXT,
-                                    userName VARCHAR(30) NOT NULL,
+                                    userName VARCHAR(50) NOT NULL,
                                     PRIMARY KEY(systemID),
-                                    FOREIGN KEY (userName) REFERENCES User(userName)
+                                    FOREIGN KEY (userName) REFERENCES tb_User(userName)
                             );
                     </table>
                     <table id="Address">
-                            CREATE TABLE Address(
-                                    line1 VARCHAR(120) NOT NULL,
-                                    line2 VARCHAR(50) NOT NULL,
-                                    City VARCHAR(50) NOT NULL,
-                                    State VARCHAR(50) NOT NULL,
-                                    Country VARCHAR(50) NOT NULL,
-                                    Zipcode INT NOT NULL,
-                                    systemID VARCHAR(30) NOT NULL,
-                                    PRIMARY KEY(line1,line2,City,State,Country),
-                                    FOREIGN KEY(systemID) REFERENCES Company(systemID)
+                            CREATE TABLE tb_Address(
+                                line1 VARCHAR(100) NOT NULL,
+                                line2 VARCHAR(50) NOT NULL,
+                                City VARCHAR(50) NOT NULL,
+                                State VARCHAR(50) NOT NULL,
+                                Country VARCHAR(50) NOT NULL,
+                                Zipcode INT NOT NULL,
+                                systemID VARCHAR(50) NOT NULL,
+                                PRIMARY KEY(line1,line2,City,State,Country),
+                                FOREIGN KEY(systemID) REFERENCES tb_Company(systemID)
                             );
                     </table>
                     <table id="Log">
-                            CREATE TABLE Log(
-                                    flightTime TIMESTAMP,
-                                    weatherInfo TEXT,
-                                    userName VARCHAR(30) NOT NULL,
-                                    PRIMARY KEY(flightTime),
-                                    FOREIGN KEY (userName) REFERENCES User(userName)
-                            );
+                            CREATE TABLE tb_Log(
+                                flightTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                weatherInfo TEXT,
+                                CoverageMap LONGBLOB,
+                                DetailedCoverageMap LONGBLOB,
+                                ErrorInMap LONGBLOB,
+                                userName VARCHAR(50) NOT NULL,
+                                PRIMARY KEY(flightTime),
+                                FOREIGN KEY (userName) REFERENCES tb_User(userName)
+                        );
                     </table>
-                    <table id="ErrorPicture">
-                            CREATE TABLE ErrorPicture(
-                                    panelIndex VARCHAR(50) NOT NULL,
-                                    errorPicture LONGBLOB,
-                                    flightTime TIMESTAMP,
-                                    PRIMARY KEY (panelIndex),
-                                    FOREIGN KEY (flightTime) REFERENCES Log(flightTime)
-                            );
+                    <table id="DetailedError">
+                            CREATE TABLE tb_IdlePanel(
+                                panelIndex VARCHAR(50) NOT NULL,
+                                latitude FLOAT,
+                                longitude FLOAT,
+                                VideoTime FLOAT,
+                                Issue VARCHAR(200),
+                                errorPicture LONGBLOB,
+                                flightTime TIMESTAMP,
+                                PRIMARY KEY (panelIndex),
+                                FOREIGN KEY (flightTime) REFERENCES tb_Log(flightTime)
+                        );
                     </table>
+                    <table id="DroneFlightLog">
+                            CREATE TABLE tb_DroneFlightLog (
+                                inspectionTime INT,
+                                latitude FLOAT,
+                                longitude FLOAT,
+                                altitud FLOAT,
+                                ascent FLOAT,
+                                speed FLOAT,
+                                distance FLOAT,
+                                inpectionDatetime TIMESTAMP,
+                                satellites INT,
+                                voltage FLOAT,
+                                max_altitude FLOAT,
+                                max_ascent FLOAT,
+                                max_speed FLOAT,
+                                max_distance FLOAT,
+                                compass_heading FLOAT,
+                                pitch FLOAT,
+                                roll FLOAT,
+                                isPhoto INT,
+                                isVideo INT,
+                                rc_elevator INT,
+                                rc_aileron INT,
+                                rc_throttle INT,
+                                rc_rudder INT,
+                                gimbal_heading FLOAT,
+                                gimbal_pitch FLOAT,
+                                battery_percent INT,
+                                voltageCell1 FLOAT,
+                                voltageCell2 FLOAT,
+                                voltageCell3 FLOAT,
+                                voltageCell4 FLOAT,
+                                voltageCell5 FLOAT,
+                                voltageCell6 FLOAT,
+                                battery_temperature FLOAT,
+                                flycStateRaw INT,
+                                flycState VARCHAR(50),
+                                flightTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                PRIMARY KEY (inspectionTime),
+                                FOREIGN KEY (flightTime) REFERENCES tb_Log(flightTime)
+                        );                       
+            </table>
             </createTable>
             <insertDate>
                     <UserData>
-                        INSERT INTO User (userName,userType,firstName,lastName) VALUES(?,?,?,?);
+                        INSERT INTO tb_User (userName,userType,firstName,lastName) VALUES(?,?,?,?);
                     </UserData>
                     <CompanyData>
-                        INSERT INTO Company (systemID,name,solarFactoryInfo,userName) VALUES(?,?,?,?);
+                        INSERT INTO tb_Company (systemID,name,solarFactoryInfo,userName) VALUES(?,?,?,?);
                     </CompanyData>
                     <AddressData>
-                        INSERT INTO Address(line1,line2,City,State,Country,Zipcode,systemID) VALUES(?,?,?,?,?,?,?);
+                        INSERT INTO tb_Address(line1,line2,City,State,Country,Zipcode,systemID) VALUES(?,?,?,?,?,?,?);
                     </AddressData>
                     <LogData>
-                        INSERT INTO Log(flightTime,weatherInfo,userName) VALUES(?,?,?);
+                        INSERT INTO tb_Log(flightTime,weatherInfo,CoverageMap,DetailedCoverageMap,ErrorInMap,userName) VALUES(?,?,?,?,?,?);
                     </LogData>
-                    <ErrorPictureData>
-                        INSERT INTO ErrorPicture(panelIndex,errorPicture,flightTime) VALUES(?,?,?);
-                    </ErrorPictureData>
+                    <DetailedErrorData>
+                        INSERT INTO tb_IdlePanel(panelIndex,latitude,longitude,VideoTime,Issue,errorPicture,flightTime) VALUES(?,?,?,?,?,?,?);
+                    </DetailedErrorData>
+                    <DroneFlightLogData>
+                        INSERT INTO tb_DroneFlightLog(latitude,longitude,altitud,ascent,speed,distance,inspectionTime,inpectionDatetime,satellites,voltage,max_altitude,max_ascent,max_speed,max_distance,compass_heading,pitch,roll,isPhoto,isVideo,rc_elevator,rc_aileron,rc_throttle,rc_rudder,gimbal_heading,gimbal_pitch,battery_percent,voltageCell1,voltageCell2,voltageCell3,voltageCell4,voltageCell5,voltageCell6,battery_temperature,flycStateRaw,flycState,flightTime)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
+                    </DroneFlightLogData>
             </insertDate>
     </dataBaseInit>
     <dataBaseConnection>
@@ -97,36 +149,55 @@
 
     <databaseOperation>
         <QueryGetFlightLog>
-            SELECT Log.weatherInfo, ErrorPicture.errorPicture 
-            FROM Log, ErrorPicture
-            where Log.flightTime = ErrorPicture.flightTime AND Log.flightTime = ?;
+            SELECT weatherInfo,CoverageMap,DetailedCoverageMap,ErrorInMap
+            FROM tb_Log
+            where flightTime = ?;
         </QueryGetFlightLog>
         <ColumnGetFlightLog id = "0">
-            general Log.weatherInfo LOB ErrorPicture.errorPicture 
+            general weatherInfo LOB CoverageMap LOB DetailedCoverageMap LOB ErrorInMap
         </ColumnGetFlightLog>
         <QueryGetAllLogs>
             SELECT flightTime
-            FROM Log
+            FROM tb_Log
             WHERE userName = ?;
         </QueryGetAllLogs>
         <columnGetAllLogs>
             general flightTime
         </columnGetAllLogs>
         <QueryGetCompanyInfo>
-            SELECT Company.name,Company.solarFactoryInfo,Address.line1,Address.line2,Address.City,Address.State,Address.Country,Address.Zipcode
-            FROM Company,Address
-            WHERE Company.systemID = Address.systemID AND userName = ?;
+            SELECT tb_Company.name,tb_Company.solarFactoryInfo,tb_Address.line1,tb_Address.line2,tb_Address.City,tb_Address.State,tb_Address.Country,tb_Address.Zipcode
+            FROM tb_Company,tb_Address
+            WHERE tb_Company.systemID = tb_Address.systemID AND userName = ?;
         </QueryGetCompanyInfo>
         <columnGetCompanyInfo>
             general name general solarFactoryInfo general line1 general line2 general City general State general Country general Zipcode
         </columnGetCompanyInfo>
         <QuerygetUserInfo>
             SELECT userName,userType
-            FROM User
+            FROM tb_User
             WHERE userName = ?;
         </QuerygetUserInfo>
         <columnGetUserInfo>
             general userName general userType
         </columnGetUserInfo>
+        <QueryGetTotalInspectedPanels>
+            SELECT COUNT(*) as number
+            FROM tb_DroneFlightLog
+            WHERE  altitud > 6.5;
+        </QueryGetTotalInspectedPanels>
+        
+        <QueryGetTotalFailures>
+            SELECT COUNT(*) as number
+            FROM tb_IdlePanel;
+        </QueryGetTotalFailures>
+
+        <QueryGetIdelPanelInfo>
+            SELECT panelIndex,latitude,longitude,VideoTime,Issue,errorPicture
+            FROM tb_IdlePanel
+            WHERE flightTime = ?;
+        </QueryGetIdelPanelInfo>
+        <columnGetIdelPanelInfo>
+            general panelIndex general latitude general longitude general VideoTime general Issue LOB errorPicture
+        </columnGetIdelPanelInfo>
     </databaseOperation>
 </projectROOT>

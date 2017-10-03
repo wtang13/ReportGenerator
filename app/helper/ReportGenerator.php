@@ -6,19 +6,17 @@ class ReporterGenerator{
     private $userid;
     private $userType;
     private $log;
-    private $Mchoice;
     /********** Main Function Part:constructor********/
     /*
      * Input: Array: $_GET[];
      * function : init
      */
-    function __construct($GetArray,$companyName,$reportFile) 
+    function __construct($GetArray,$companyName) 
     {
-        $this->pdf = new MyPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false,$companyName,$reportFile);
+        $this->pdf = new MyPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false,$companyName);
         $this->userid = $GetArray['username'];
         $this->userType = $GetArray['type'];
         $this->log = $GetArray['target'];
-        $this->Mchoice = $GetArray['printType'];
     }
     
     /*
@@ -77,15 +75,13 @@ class ReporterGenerator{
                 
     
     /*
-     * Input:String: index map's file path
+     * Input:
      * Array: companyInfo, Int: total Failure, 
      * String: tips from user
-     * function: Add a cell contains overall information
-     * add indexMap for frontpage
-     * add name of indexMap
-     * void
+     * Function: Add a table contains overall information
+     * Return :void
      */
-    function finishFrontpage($indexMap, $companyInfo, $totalFailure, $Tips) 
+    function getGeneralInfo($companyInfo, $totalFailure, $Tips) 
     {   
         //Add report title
         $s1 ='<h1>Inspection Report<h1>';
@@ -101,112 +97,94 @@ class ReporterGenerator{
         $html = $this->pdf->getTableHTML($keys, $values,'General information');
         $this->pdf->writeHTML($html, true, false, true, false, '');
         $this->nextFewLine(2);
-        
-        //Add index Map
-        $s3 = '<h2>Index map of detcted failures</h2>';
-        $this->addMapPicture($s3, $indexMap);
-
-        //Put picture in next Page
-        $this->pdf->lastPage();
-        $this->pdf->AddPage();
+        $this->addPageBreak();
         
     }
     
     /*
-     * 
-     * function: 
-     * 1. add a paragraph to introduce
-     * 2. generate a table based on report .csvfile
+     * Input:
+     * String: index map's file path
+     * Function:add title and picture in report
+     * Return: void 
      */
-    function finishSummaryI()
-    {
-        //Set S2
-        $s1='<h2>Summary</h2>';
-        $this->pdf->writeHTML($s1);
-        $this->nextFewLine(1);
-        $p1='<p>    In summary, there 2 two parts: failure summary and environment summary. Failure Summary contains all detected failures from selected flight log. Environment Summary contains weather, detailed information (area, landform pictures).</p>';
-        $this->pdf->writeHTML($p1);
-        $this->nextFewLine(2);
-        
+    function getIndexMap($indexMap) {
+        //Add index Map
+        $s3 = '<h2>Index map of detcted failures</h2>';
+        $this->addMapPicture($s3, $indexMap);
+        $this->addPageBreak();
+    }
+    /*
+     * Input: $errors: all errors get from database
+     * function: generate a table based on dataBase data
+     */
+    function getFailureSummary($errors)
+    {        
         //Add table
-        $s2='<h3>Failure Summary</h3>';
+        $s2='<h2>Failure Summary</h2>';
         $this->pdf->writeHTML($s2);
         $this->nextFewLine(1);
         
         // column titles
         $header = array('Panel Label', 'Issue');
-        $this->pdf->ColoredSummaryTable($header, $this->pdf->data);
+        $this->pdf->ColoredSummaryTable($header, $errors);
         // add page break
-        $this->pdf->lastPage();
-        $this->pdf->AddPage();
+        $this->addPageBreak();
     }
     
     /*
-     * Input: String: report .csv file path,
-     * String: map file path (map file will contian only 2 image), 
-     * array: $weatherInfo
-     * array: company information
-     * function: 
-     * 1. add a paragraph to introduce
-     * 2. generate a table based on report .csvfile
-     * 3. generate weather from time and standard .csv file from google weather
-     * 4. generate company cell in that form based on input array
-     * 5. add 2 page from map file
+     * Input: array : comnayinfo and weatherInfo
+     * function : generate a table based on input array
      */
-    function finishSummaryALL($mapFile, $companyArray, $weatherInfo)
+    function getEnvironmentSummary($companyArray, $weatherInfo)
     {
-        //AddSummaryI
-        $this->finishSummaryI();
-        
-        $s1='<h3>Environment Summary</h3>';
+        $s1='<h2>Environment Summary</h2>';
         $this->pdf->writeHTML($s1);
         $this->nextFewLine(2);
         
         //Add table for weather and company information
         $this->pdf->getEnvironmentTable($companyArray['solarFactoryInfo'], $weatherInfo);
-        // add page break
-        $this->pdf->lastPage();
-        $this->pdf->AddPage();
-        
-        //Add 2 picture in a map
-        $s2 = '<h3>Flight coverage map</h3>';
-        $this->addMapPicture($s2, $mapFile[0]);
-        
-        $s3 = '<h3>Detailed coverage map</h3>';
-        $this->addMapPicture($s3, $mapFile[1]);
-        
-        //Put picture in next Page
-        $this->pdf->lastPage();
-        $this->pdf->AddPage();
+        $this->addPageBreak();
     }
     
     /*
-     *input: Array[]: modePicture file path(fetch from DB)
-     * fuction:based on picArrau, reportFile and page number, add detailed mataince info
-     * return: page number
+     * Input: an array contains filepath to the picture
+     * function: add the picture
      */
-    function finishDetaileReport($picArray)
+    function getPicture($pictureFilePath,$title)
+    {
+        //Add 2 picture in a map
+        $s2 = '<h2>'.$title.'</h2>';
+        $this->addMapPicture($s2, $pictureFilePath);
+        //Put picture in next Page
+        $this->addPageBreak();
+    }
+    
+    /*
+     *input: Array[]: data from DB
+     *fuction:for a table based on input array
+     */
+    function getDetaileFailureReport($error)
     {
         $s1='<h2>Detailed failure report</h2>';
         $this->pdf->writeHTML($s1);
         $this->nextFewLine(2);
-        for($i = 0; $i < count($this->pdf->data);$i++){
-            $this->pdf->addEachCell($picArray, $i);
+        for($i = 0; $i < count($error);$i++){
+            $this->pdf->addEachCell($error[$i], $i);
             $this->nextFewLine(2);
-            if ($i % 2 == 1 && $i != count($this->pdf->data) - 1) {
-                $this->pdf->lastPage();
-                $this->pdf->AddPage();
+            if ($i % 2 == 1 && $i != count($error) - 1) {
+                $this->addPageBreak();
             }
         }
     }
     
     /*
+     * Input: $standard is an array
      * function : 
      * 1. add pie chart based on .csv file
      * 2. add form to calculate error rate
      * 3. add conclusion
      */
-    function addAnalysis($standard)
+    function getAnalysis($rows,$totalerror,$Idel)
     {
        $s = '<h2>Analysis</h2>';
        $this->pdf->writeHTML($s, true, false, true, false, '');
@@ -215,15 +193,15 @@ class ReporterGenerator{
        $s1 = '<h2>Inspection Result</h2>';
        $this->pdf->writeHTML($s1, true, false, true, false, '');
        $this->nextFewLine(2);
-       $total = $this->getTotal($standard);
-       $errors = count($this->pdf->data);
+       $total = $rows;
+       $errors = $totalerror;
        $errorRate = ($errors * 100 + 0.0)/ $total;
        $this->pdf->addInspectionTable($errors,$total,$errorRate);
        
        $this->pdf->lastPage();
        $this->pdf->AddPage();
        // Add a pie chart
-       $part = $this->getPart();
+       $part = $this->getPart($Idel);
        $this->addPieChart($part);
        
        //MayBe add a paragraph Here
@@ -232,7 +210,7 @@ class ReporterGenerator{
     /*
      * function : add terms table cell in current pdf
      */
-    function addTerms()
+    function getTermsAndDefinition()
     {
         $s = '<h2>Terms And Definition</h2>';
         $this->pdf->writeHTML($s, true, false, true, false, '');
@@ -289,18 +267,23 @@ class ReporterGenerator{
     }
     /********Helper Function part **********/
     
+    function addPageBreak() {
+        $this->pdf->lastPage();
+        $this->pdf->AddPage();
+    }
     /*GetParts*/
-    function getPart(){
+    function getPart($error){
         $dic = [];
         // init dic
-        foreach($this->pdf->data as $row) {
-            if(!array_key_exists($row[4], $dic)) {
-                $dic[$row[4]] = 1;
+        foreach($error as $row) {
+            if(!array_key_exists($row['Issue'], $dic)) {
+                $dic[$row['Issue']] = 1;
             } else {
-               $dic[$row[4]] = $dic[$row[4]] + 1;
+               $dic[$row['Issue']] = $dic[$row['Issue']] + 1;
             }
         }
-        $total = count($this->pdf->data);
+        
+        $total = count($error);
         while($i = current($dic)) {
             $key = key($dic);
             $dic[$key] = ($i * 360) / $total;
@@ -349,7 +332,6 @@ class ReporterGenerator{
         $this->pdf->setJPEGQuality(75);
         $y= $this->pdf->GetY();
         $this->pdf->Image($filePath, 10, $y + 10, 150, 70, 'PNG', '', 'N', true, 150,'', false, false, 0, false, false, false);
-        $this->nextFewLine(2);
     }
     
     /*Function: draw a pie chart based on $part

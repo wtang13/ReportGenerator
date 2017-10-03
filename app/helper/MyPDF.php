@@ -3,17 +3,15 @@ require ('../TCPDF-master/tcpdf.php');
 class MyPDF extends TCPDF{
     /*********variables***********/
     public $companyName;
-    public $data;
     /******Override functions************/
     /*
      *Function: init
      */
     public function __construct($orientation , $unit , $format,
-            $unicode, $encoding , $diskcache,$companyName,$reportFile) 
+            $unicode, $encoding , $diskcache,$companyName) 
     {
         parent::__construct($orientation, $unit, $format, $unicode, $encoding, $diskcache, false);
         $this->companyName = $companyName;
-        $this->data = $this->LoadData($reportFile);
     }
     /*
      * Format: 1 cell in the right top corner, first line is companyName, 
@@ -100,8 +98,8 @@ class MyPDF extends TCPDF{
         $fill = 0;
         foreach($data as $row) {
             // only 2: 0 and 4 is needed
-            $this->Cell($w[0], 6, $row[0], 'LR', 0, 'L', $fill);
-            $this->Cell($w[1], 6, $row[4], 'LR', 0, 'L', $fill);
+            $this->Cell($w[0], 6, $row['panelIndex'], 'LR', 0, 'L', $fill);
+            $this->Cell($w[1], 6, $row['Issue'], 'LR', 0, 'L', $fill);
             $this->Ln();
             $fill=!$fill;
         }
@@ -127,18 +125,15 @@ class MyPDF extends TCPDF{
         /*
      * function: add a cell about error's detailed information
      * Imagine at left (40) and a table at right
+     * Assumption : $error in same order as $header 
      */
-    function addEachCell($pic,$num)
+    function addEachCell($error,$num)
     {
         $header = array('Panel Label','Latitude','Longitude','Video Time','Issue','Affected Nodes','Index Map Picture');
-        $map = '';
-        if (count($pic) < 2) {
-            $map = $pic[0];
-        } else {
-            $map = $pic[$num];
-        }
+        $map = $error['errorPicture'];
         $this->tabelSetting();
         $fill = 0;
+        $keys = array_keys($error);
         for ($j = 0; $j < 2; $j++) {
             // add First Row
             $this->SetFont('', 'B');
@@ -151,7 +146,7 @@ class MyPDF extends TCPDF{
             for($i = 0; $i < 3; $i++) {
                 $index = $j * 3 + $i;
                 if ($index < 5) {
-                    $this->Cell(50, 7, $this->data[$num][$index], 1, 0, 'C', $fill);
+                    $this->Cell(50, 7, $error[$keys[$index]], 1, 0, 'C', $fill);
                 } else {
                     $this->Cell(50, 7, 'Add IN Future', 1, 0, 'L', $fill);
                 }
